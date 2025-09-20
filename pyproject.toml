@@ -1,0 +1,17 @@
+[project]
+name = "OpenGL for Python"
+
+[tool.pyside6-project]
+files = [
+    "base/__init__.py"
+    ,"base/item.py"
+    ,"base/Renderer.py"
+    ,"gfx/cat.png"
+    ,"gfx/wood.jpeg"
+    ,"qml/Main.qml"
+    ,"alphaBlend.py"
+    ,"main.py"
+    ,"texture.py"
+    ,"transform.py"
+    ,"triangle.py"
+]

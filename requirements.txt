@@ -1,0 +1,4 @@
+PySide6
+numpy
+PyOpenGL
+PyOpenGL_accelerate
