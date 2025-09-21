@@ -11,6 +11,7 @@ files = [
     ,"qml/Main.qml"
     ,"alphaBlend.py"
     ,"camera.py"
+    ,"lighting.py"
     ,"main.py"
     ,"texture.py"
     ,"transform.py"
