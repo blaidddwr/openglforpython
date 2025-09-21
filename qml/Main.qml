@@ -7,7 +7,7 @@ ApplicationWindow {
     height: 600
     visible: true
     title: qsTr("OpenGL in Python")
-    OpenGLAlphaBlend {
+    OpenGLCamera {
         anchors.fill: parent
     }
 }

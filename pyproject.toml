@@ -10,6 +10,7 @@ files = [
     ,"gfx/wood.jpeg"
     ,"qml/Main.qml"
     ,"alphaBlend.py"
+    ,"camera.py"
     ,"main.py"
     ,"texture.py"
     ,"transform.py"

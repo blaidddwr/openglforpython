@@ -6,6 +6,7 @@ from PySide6.QtQuick import QQuickView
 from PySide6.QtQuick import QSGRendererInterface
 from pathlib import Path
 import alphaBlend
+import camera
 import sys
 import texture
 import transform
@@ -24,6 +25,7 @@ if __name__ == "__main__":
     qmlRegisterType(texture.Item,"internal",1,0,"OpenGLTexture")
     qmlRegisterType(alphaBlend.Item,"internal",1,0,"OpenGLAlphaBlend")
     qmlRegisterType(transform.Item,"internal",1,0,"OpenGLTransform")
+    qmlRegisterType(camera.Item,"internal",1,0,"OpenGLCamera")
     engine = QQmlApplicationEngine()
     engine.load(Path(__file__).resolve().parent/"qml"/"Main.qml")
     if not engine.rootObjects():
