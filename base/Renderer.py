@@ -1,8 +1,12 @@
 from OpenGL.GL import glViewport
+from OpenGL.GL.shaders import compileShader
 from PySide6.QtCore import QObject
 from PySide6.QtCore import QSize
 from PySide6.QtCore import Qt
+from PySide6.QtGui import QImage
 from PySide6.QtQuick import QQuickWindow
+from pathlib import Path
+import inspect
 
 
 class Renderer(QObject):
@@ -37,6 +41,10 @@ class Renderer(QObject):
             window.beforeRendering.connect(self.__init,Qt.DirectConnection)
             window.beforeRenderPassRecording.connect(self.__paint,Qt.DirectConnection)
 
+    def _compileShader(self,fileName:str,type):
+        with open(Path(inspect.getfile(self.__class__)).resolve().parent/fileName,"r") as file:
+            return compileShader(file.read(),type)
+
     def _destroy(self):
         pass
 
@@ -48,6 +56,12 @@ class Renderer(QObject):
 
     def _resize(self):
         pass
+
+    @staticmethod
+    def _texture(fileName:str) -> QImage:
+        ret = QImage(Path(__file__).resolve().parent.parent/"gfx"/fileName)
+        ret = ret.convertToFormat(QImage.Format_RGBA8888)
+        return ret
 
     def __init(self):
         if not self.__initd:

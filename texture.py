@@ -42,8 +42,6 @@ from OpenGL.GL import glVertexAttribPointer
 from OpenGL.GL import glViewport
 from OpenGL.GL.shaders import compileProgram
 from OpenGL.GL.shaders import compileShader
-from PySide6.QtGui import QImage
-from pathlib import Path
 import base
 import ctypes
 import numpy as np
@@ -86,8 +84,7 @@ class Renderer(base.Renderer):
 
     def __initTexture(self):
         glUniform1i(glGetUniformLocation(self.__program,"imageTexture"),0)
-        img = QImage(Path(__file__).resolve().parent/"gfx"/"wood.jpeg")
-        img = img.convertToFormat(QImage.Format_RGBA8888)
+        img = self._texture("wood.jpeg")
         self.__texture = glGenTextures(1)
         glBindTexture(GL_TEXTURE_2D,self.__texture)
         glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_WRAP_S,GL_REPEAT)
