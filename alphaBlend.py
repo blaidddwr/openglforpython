@@ -63,7 +63,7 @@ class Renderer(base.Renderer):
         self.__texture.setMinifyFilter(GL_NEAREST)
         self.__texture.setMagnifyFilter(GL_LINEAR)
         with self.__program as program:
-            program._imageTexture.set1i(0)
+            program.uniform.imageTexture.set1i(0)
 
     def __initVertices(self):
         vertices = (

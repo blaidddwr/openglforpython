@@ -148,13 +148,13 @@ class Renderer(base.Renderer):
         self.__texture.setMinifyFilter(GL_NEAREST)
         self.__texture.setMagnifyFilter(GL_LINEAR)
         with self.__program as program:
-            program._imageTexture.set1i(0)
+            program.uniform.imageTexture.set1i(0)
 
     def __initTransform(self):
         with self.__program as program:
-            self.__modelUniform = program._model
-            self.__viewUniform = program._view
-            self.__projectionUniform = program._projection
+            self.__modelUniform = program.uniform.model
+            self.__viewUniform = program.uniform.view
+            self.__projectionUniform = program.uniform.projection
 
     def __initVertices(self):
         vertices = (
