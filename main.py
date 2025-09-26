@@ -18,7 +18,7 @@ if __name__ == "__main__":
     app = QGuiApplication(sys.argv)
     QQuickView.setGraphicsApi(QSGRendererInterface.OpenGL)
     format = QSurfaceFormat()
-    format.setVersion(4,3)
+    format.setVersion(4,5)
     format.setProfile(QSurfaceFormat.CoreProfile)
     format.setSwapBehavior(QSurfaceFormat.DoubleBuffer)
     QSurfaceFormat.setDefaultFormat(format)

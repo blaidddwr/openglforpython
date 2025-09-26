@@ -3,21 +3,26 @@ name = "OpenGL for Python"
 
 [tool.pyside6-project]
 files = [
-    "base/__init__.py"
-    ,"base/item.py"
-    ,"base/Renderer.py"
-    ,"gfx/cat.png"
-    ,"gfx/wood.jpeg"
-    ,"lighting/__init__.py"
-    ,"lighting/fragment.glsl"
-    ,"lighting/Item.py"
-    ,"lighting/Renderer.py"
-    ,"lighting/vertex.glsl"
-    ,"qml/Main.qml"
-    ,"alphaBlend.py"
-    ,"camera.py"
-    ,"main.py"
-    ,"texture.py"
-    ,"transform.py"
-    ,"triangle.py"
+    "alphaBlend.py",
+    "base/Renderer.py",
+    "base/__init__.py",
+    "base/item.py",
+    "camera.py",
+    "gfx/cat.png",
+    "gfx/wood.jpeg",
+    "lighting/Item.py",
+    "lighting/renderer.py",
+    "lighting/__init__.py",
+    "lighting/fragment.glsl",
+    "lighting/vertex.glsl",
+    "main.py",
+    "opengl/__init__.py",
+    "opengl/Buffer.py",
+    "opengl/program.py",
+    "opengl/texture.py",
+    "opengl/vertexArray.py",
+    "qml/Main.qml",
+    "texture.py",
+    "transform.py",
+    "triangle.py",
 ]

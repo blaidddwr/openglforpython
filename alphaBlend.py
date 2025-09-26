@@ -1,55 +1,23 @@
-from OpenGL.GL import GL_ARRAY_BUFFER
 from OpenGL.GL import GL_BLEND
 from OpenGL.GL import GL_DEPTH_BUFFER_BIT
-from OpenGL.GL import GL_FALSE
 from OpenGL.GL import GL_FLOAT
 from OpenGL.GL import GL_FRAGMENT_SHADER
 from OpenGL.GL import GL_LINEAR
 from OpenGL.GL import GL_NEAREST
 from OpenGL.GL import GL_ONE_MINUS_SRC_ALPHA
 from OpenGL.GL import GL_REPEAT
-from OpenGL.GL import GL_RGBA
 from OpenGL.GL import GL_SRC_ALPHA
-from OpenGL.GL import GL_STATIC_DRAW
-from OpenGL.GL import GL_TEXTURE0
-from OpenGL.GL import GL_TEXTURE_2D
-from OpenGL.GL import GL_TEXTURE_MAG_FILTER
-from OpenGL.GL import GL_TEXTURE_MIN_FILTER
-from OpenGL.GL import GL_TEXTURE_WRAP_S
-from OpenGL.GL import GL_TEXTURE_WRAP_T
 from OpenGL.GL import GL_TRIANGLES
-from OpenGL.GL import GL_UNSIGNED_BYTE
 from OpenGL.GL import GL_VERTEX_SHADER
-from OpenGL.GL import glActiveTexture
-from OpenGL.GL import glBindBuffer
-from OpenGL.GL import glBindTexture
-from OpenGL.GL import glBindVertexArray
 from OpenGL.GL import glBlendFunc
-from OpenGL.GL import glBufferData
 from OpenGL.GL import glClear
-from OpenGL.GL import glDeleteBuffers
-from OpenGL.GL import glDeleteProgram
-from OpenGL.GL import glDeleteTextures
-from OpenGL.GL import glDeleteVertexArrays
-from OpenGL.GL import glDrawArrays
 from OpenGL.GL import glEnable
-from OpenGL.GL import glEnableVertexAttribArray
-from OpenGL.GL import glGenBuffers
-from OpenGL.GL import glGenTextures
-from OpenGL.GL import glGenVertexArrays
-from OpenGL.GL import glGenerateMipmap
-from OpenGL.GL import glGetUniformLocation
-from OpenGL.GL import glTexImage2D
-from OpenGL.GL import glTexParameteri
-from OpenGL.GL import glUniform1i
-from OpenGL.GL import glUseProgram
-from OpenGL.GL import glVertexAttribPointer
 from OpenGL.GL import glViewport
-from OpenGL.GL.shaders import compileShader
-from OpenGL.GL.shaders import compileProgram
+from opengl import Program
+from opengl import Shader
+from opengl import Texture2D
+from opengl import VertexArray
 import base
-import ctypes
-import numpy as np
 
 
 class Item(base.Item):
@@ -66,100 +34,76 @@ class Renderer(base.Renderer):
         self.__initTexture()
 
     def _paint(self):
-        glViewport(0,0,self.viewportSize().width(),self.viewportSize().height())
         glEnable(GL_BLEND)
         glBlendFunc(GL_SRC_ALPHA,GL_ONE_MINUS_SRC_ALPHA)
-        glActiveTexture(GL_TEXTURE0)
-        glBindTexture(GL_TEXTURE_2D,self.__texture)
-        glUseProgram(self.__program)
-        glBindVertexArray(self.__vao)
-        glDrawArrays(GL_TRIANGLES,0,self.__vertexSize)
+        glViewport(0,0,self.viewportSize().width(),self.viewportSize().height())
+        with self.__program:
+            with self.__vao as vao:
+                self.__texture.bind(0)
+                vao.draw()
         glClear(GL_DEPTH_BUFFER_BIT)
 
     def _destroy(self):
-        glDeleteTextures(1,(self.__texture,))
-        glDeleteBuffers(1,(self.__vbo,))
-        glDeleteVertexArrays(1,(self.__vao,))
-        glDeleteProgram(self.__program)
+        del self.__texture
+        del self.__vao
+        del self.__program
 
     def __initProgram(self):
-        self.__program = compileProgram(
-            compileShader(_vertexShaderSrc,GL_VERTEX_SHADER)
-            ,compileShader(_fragmentShaderSrc,GL_FRAGMENT_SHADER)
+        self.__program = Program(
+            Shader(_vertexShaderSrc,GL_VERTEX_SHADER)
+            ,Shader(_fragmentShaderSrc,GL_FRAGMENT_SHADER)
             )
-        glUseProgram(self.__program)
 
     def __initTexture(self):
-        glUniform1i(glGetUniformLocation(self.__program,"imageTexture"),0)
-        img = self._texture("cat.png")
-        self.__texture = glGenTextures(1)
-        glBindTexture(GL_TEXTURE_2D,self.__texture)
-        glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_WRAP_S,GL_REPEAT)
-        glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_WRAP_T,GL_REPEAT)
-        glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MIN_FILTER,GL_NEAREST)
-        glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MAG_FILTER,GL_LINEAR)
-        glTexImage2D(
-            GL_TEXTURE_2D
-            ,0
-            ,GL_RGBA
-            ,img.width()
-            ,img.height()
-            ,0
-            ,GL_RGBA
-            ,GL_UNSIGNED_BYTE
-            ,img.bits()
-            )
-        glGenerateMipmap(GL_TEXTURE_2D)
+        img = self._image("cat.png")
+        self.__texture = Texture2D(1,img.width(),img.height())
+        self.__texture.load(img)
+        self.__texture.setWrapS(GL_REPEAT)
+        self.__texture.setWrapT(GL_REPEAT)
+        self.__texture.setMinifyFilter(GL_NEAREST)
+        self.__texture.setMagnifyFilter(GL_LINEAR)
+        with self.__program as program:
+            program._imageTexture.set1i(0)
 
     def __initVertices(self):
-        self.__vertices = (
+        vertices = (
             -0.5,-0.5,0.0,1.0,0.0,0.0,0.0,1.0
             ,0.5,-0.5,0.0,0.0,1.0,0.0,1.0,1.0
             ,0.0,0.5,0.0,0.0,0.0,1.0,0.5,0.0
         )
-        self.__vertices = np.array(self.__vertices,dtype=np.float32)
-        self.__vertexSize = 3
-        self.__vao = glGenVertexArrays(1)
-        glBindVertexArray(self.__vao)
-        self.__vbo = glGenBuffers(1)
-        glBindBuffer(GL_ARRAY_BUFFER,self.__vbo)
-        glBufferData(
-            GL_ARRAY_BUFFER
-            ,self.__vertices.nbytes
-            ,self.__vertices
-            ,GL_STATIC_DRAW
-            )
-        glEnableVertexAttribArray(0)
-        glVertexAttribPointer(0,3,GL_FLOAT,GL_FALSE,32,ctypes.c_void_p(0))
-        glEnableVertexAttribArray(1)
-        glVertexAttribPointer(1,3,GL_FLOAT,GL_FALSE,32,ctypes.c_void_p(12))
-        glEnableVertexAttribArray(2)
-        glVertexAttribPointer(2,2,GL_FLOAT,GL_FALSE,32,ctypes.c_void_p(24))
+        with self.__program as program:
+            self.__vao = VertexArray(
+                GL_TRIANGLES
+                ,(
+                    (program.position,GL_FLOAT,3,0)
+                    ,(program.color,GL_FLOAT,3,12)
+                    ,(program.texturePoint,GL_FLOAT,2,24)
+                    )
+                )
+            self.__vao.createWithFloats(vertices)
 
 
-_vertexShaderSrc = """
-#version 430 core
+_vertexShaderSrc = """#version 430 core
 
-layout (location=0) in vec3 vertexPos;
-layout (location=1) in vec3 vertexColor;
-layout (location=2) in vec2 vertexTexCoord;
+in vec3 position;
+in vec3 color;
+in vec2 texturePoint;
 
-out vec3 fragmentColor;
-out vec2 fragmentTexCoord;
+out vec3 fColor;
+out vec2 fTexturePoint;
 
 void main()
 {
-    gl_Position = vec4(vertexPos,1.0);
-    fragmentColor = vertexColor;
-    fragmentTexCoord = vertexTexCoord;
+    gl_Position = vec4(position,1.0);
+    fColor = color;
+    fTexturePoint = texturePoint;
 }
 """
 
-_fragmentShaderSrc = """
-#version 430 core
+_fragmentShaderSrc = """#version 430 core
 
-in vec3 fragmentColor;
-in vec2 fragmentTexCoord;
+in vec3 fColor;
+in vec2 fTexturePoint;
 
 uniform sampler2D imageTexture;
 
@@ -167,6 +111,6 @@ out vec4 color;
 
 void main()
 {
-    color = vec4(fragmentColor,1.0)*texture(imageTexture,fragmentTexCoord);
+    color = vec4(fColor,1.0)*texture(imageTexture,fTexturePoint);
 }
 """

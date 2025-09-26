@@ -2,7 +2,7 @@ from PySide6.QtCore import QObject
 from PySide6.QtCore import QTimerEvent
 from PySide6.QtCore import Qt
 from PySide6.QtGui import QMouseEvent
-from lighting.Renderer import Renderer
+from lighting.renderer import Renderer
 import base
 
 
