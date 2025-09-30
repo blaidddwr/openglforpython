@@ -2,8 +2,10 @@ from OpenGL.GL import GL_RGBA
 from OpenGL.GL import GL_RGBA8
 from OpenGL.GL import GL_TEXTURE0
 from OpenGL.GL import GL_TEXTURE_2D
+from OpenGL.GL import GL_TEXTURE_2D_ARRAY
 from OpenGL.GL import GL_TEXTURE_MAG_FILTER
 from OpenGL.GL import GL_TEXTURE_MIN_FILTER
+from OpenGL.GL import GL_TEXTURE_WRAP_R
 from OpenGL.GL import GL_TEXTURE_WRAP_S
 from OpenGL.GL import GL_TEXTURE_WRAP_T
 from OpenGL.GL import GL_UNSIGNED_BYTE
@@ -14,27 +16,21 @@ from OpenGL.GL import glDeleteTextures
 from OpenGL.GL import glGenerateTextureMipmap
 from OpenGL.GL import glTextureParameteri
 from OpenGL.GL import glTextureStorage2D
+from OpenGL.GL import glTextureStorage3D
 from OpenGL.GL import glTextureSubImage2D
+from OpenGL.GL import glTextureSubImage3D
 from OpenGL.constant import IntConstant as glIntConstant
 from PySide6.QtGui import QImage
 from ctypes import c_uint
 
 
-class Texture2D:
+class Texture:
 
-    def __init__(self,levels:int,width:int,height:int):
-        if (
-            levels <= 0
-            or width <= 0
-            or height <= 0
-            ):
-            raise RuntimeError
+    def __init__(self,type:glIntConstant):
         id = c_uint()
-        glCreateTextures(GL_TEXTURE_2D,1,id)
+        glCreateTextures(type,1,id)
         self.__id = id.value
-        glTextureStorage2D(self.__id,levels,GL_RGBA8,width,height)
-        self.__width = width
-        self.__height = height
+        self.__type = type
 
     def __del__(self):
         glDeleteTextures(1,(self.__id,))
@@ -43,28 +39,10 @@ class Texture2D:
         if binding < 0:
             raise RuntimeError
         glActiveTexture(GL_TEXTURE0+binding)
-        glBindTexture(GL_TEXTURE_2D,self.__id)
+        glBindTexture(self.__type,self.__id)
 
-    def load(self,image:QImage) -> None:
-        if (
-            image.width() > self.__width
-            or image.height() > self.__height
-            ):
-            raise RuntimeError
-        if image.format() != QImage.Format_RGBA8888:
-            image.convertTo(QImage.Format_RGBA8888)
-        glTextureSubImage2D(
-            self.__id
-            ,0
-            ,0
-            ,0
-            ,image.width()
-            ,image.height()
-            ,GL_RGBA
-            ,GL_UNSIGNED_BYTE
-            ,image.bits()
-            )
-        glGenerateTextureMipmap(self.__id)
+    def id(self):
+        return self.__id
 
     def setMagnifyFilter(self,value:glIntConstant) -> None:
         glTextureParameteri(self.__id,GL_TEXTURE_MAG_FILTER,value)
@@ -78,3 +56,101 @@ class Texture2D:
     def setWrapT(self,value:glIntConstant) -> None:
         glTextureParameteri(self.__id,GL_TEXTURE_WRAP_T,value)
 
+    def setWrapR(self,value:glIntConstant) -> None:
+        glTextureParameteri(self.__id,GL_TEXTURE_WRAP_R,value)
+
+
+class Texture2D(Texture):
+
+    @staticmethod
+    def fromImage(levels:int,image:QImage):
+        ret = Texture2D(levels,GL_RGBA8,image.width(),image.height())
+        ret.loadImage(image)
+        return ret
+
+    def __init__(self,levels:int,format:glIntConstant,width:int,height:int):
+        if (
+            levels <= 0
+            or width <= 0
+            or height <= 0
+            ):
+            raise RuntimeError
+        super().__init__(GL_TEXTURE_2D)
+        self.__format = format
+        glTextureStorage2D(self.id(),levels,format,width,height)
+        self.__width = width
+        self.__height = height
+
+    def loadImage(self,image:QImage) -> None:
+        if (
+            self.__format != GL_RGBA8
+            or image.width() > self.__width
+            or image.height() > self.__height
+            ):
+            raise RuntimeError
+        if image.format() != QImage.Format_RGBA8888:
+            image.convertTo(QImage.Format_RGBA8888)
+        glTextureSubImage2D(
+            self.id()
+            ,0
+            ,0
+            ,0
+            ,image.width()
+            ,image.height()
+            ,GL_RGBA
+            ,GL_UNSIGNED_BYTE
+            ,image.bits()
+            )
+        glGenerateTextureMipmap(self.id())
+
+
+class Texture2DArray(Texture):
+
+    @staticmethod
+    def fromImages(levels:int,images:list):
+        if not images:
+            raise RuntimeError
+        ret = Texture2DArray(levels,images[0].width(),images[0].height(),len(images))
+        ret.load(*images)
+        return ret
+
+    def __init__(self,levels:int,format:glIntConstant,width:int,height:int,layerSize:int):
+        if (
+            levels <= 0
+            or width <= 0
+            or height <= 0
+            or layerSize <= 0
+            ):
+            raise RuntimeError
+        super().__init__(GL_TEXTURE_2D_ARRAY)
+        self.__format = format
+        glTextureStorage3D(self.id(),levels,format,width,height,layerSize)
+        self.__width = width
+        self.__height = height
+        self.__depth = layerSize
+
+    def loadImages(self,*images) -> None:
+        for (layer,img) in enumerate(images):
+            if (
+                self.__format != GL_RGBA8
+                or img.width() > self.__width
+                or img.height() > self.__height
+                or layer > self.__depth
+                ):
+                raise RuntimeError
+            if img.format() != QImage.Format_RGBA8888:
+                img.convertTo(QImage.Format_RGBA8888)
+            glTextureSubImage3D(
+                self.id()
+                ,0
+                ,0
+                ,0
+                ,layer
+                ,img.width()
+                ,img.height()
+                ,1
+                ,GL_RGBA
+                ,GL_UNSIGNED_BYTE
+                ,img.bits()
+                )
+        glGenerateTextureMipmap(self.id())

@@ -128,9 +128,7 @@ class Renderer(base.Renderer):
             )
 
     def __initTexture(self):
-        img = self._image("wood.jpeg")
-        self.__texture = Texture2D(1,img.width(),img.height())
-        self.__texture.load(img)
+        self.__texture = Texture2D.fromImage(1,self._image("wood.jpeg"))
         self.__texture.setWrapS(GL_REPEAT)
         self.__texture.setWrapT(GL_REPEAT)
         self.__texture.setMinifyFilter(GL_NEAREST)
@@ -184,12 +182,12 @@ class Renderer(base.Renderer):
             ,-0.5,0.5,-0.5,0,1,0,1,0
         )
         with self.__program as program:
-            self.__vao = VertexArray(
-                GL_TRIANGLES
+            self.__vao = VertexArray.fromFloats(
+                vertices
+                ,GL_TRIANGLES
                 ,(
-                    (program.position,GL_FLOAT,3,0)
-                    ,(program.texturePoint,GL_FLOAT,2,12)
-                    ,(program.normal,GL_FLOAT,3,20)
+                    (program.position,3,GL_FLOAT,32,0)
+                    ,(program.texturePoint,2,GL_FLOAT,32,12)
+                    ,(program.normal,3,GL_FLOAT,32,20)
                     )
                 )
-            self.__vao.createWithFloats(vertices)

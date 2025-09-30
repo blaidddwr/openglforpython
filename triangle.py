@@ -47,14 +47,14 @@ class Renderer(base.Renderer):
             ,0.0,0.5,0.0,0.0,0.0,1.0
         )
         with self.__program as program:
-            self.__vao = VertexArray(
-                GL_TRIANGLES
+            self.__vao = VertexArray.fromFloats(
+                vertices
+                ,GL_TRIANGLES
                 ,(
-                    (program.position,GL_FLOAT,3,0)
-                    ,(program.color,GL_FLOAT,3,12)
+                    (program.position,3,GL_FLOAT,24,0)
+                    ,(program.color,3,GL_FLOAT,24,12)
                     )
                 )
-            self.__vao.createWithFloats(vertices)
 
 
 _vertexShaderSrc = """#version 450 core
