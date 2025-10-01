@@ -110,8 +110,8 @@ class Texture2DArray(Texture):
     def fromImages(levels:int,images:list):
         if not images:
             raise RuntimeError
-        ret = Texture2DArray(levels,images[0].width(),images[0].height(),len(images))
-        ret.load(*images)
+        ret = Texture2DArray(levels,GL_RGBA8,images[0].width(),images[0].height(),len(images))
+        ret.loadImages(*images)
         return ret
 
     def __init__(self,levels:int,format:glIntConstant,width:int,height:int,layerSize:int):

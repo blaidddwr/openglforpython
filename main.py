@@ -10,7 +10,8 @@ import camera
 import instanced
 import lighting
 import sys
-import texture
+import texture2d
+import texture2darray
 import transform
 import triangle
 
@@ -24,12 +25,13 @@ if __name__ == "__main__":
     format.setSwapBehavior(QSurfaceFormat.DoubleBuffer)
     QSurfaceFormat.setDefaultFormat(format)
     qmlRegisterType(triangle.Item,"internal",1,0,"OpenGLTriangle")
-    qmlRegisterType(texture.Item,"internal",1,0,"OpenGLTexture")
+    qmlRegisterType(texture2d.Item,"internal",1,0,"OpenGLTexture2D")
     qmlRegisterType(alphaBlend.Item,"internal",1,0,"OpenGLAlphaBlend")
     qmlRegisterType(transform.Item,"internal",1,0,"OpenGLTransform")
     qmlRegisterType(camera.Item,"internal",1,0,"OpenGLCamera")
     qmlRegisterType(lighting.Item,"internal",1,0,"OpenGLLighting")
     qmlRegisterType(instanced.Item,"internal",1,0,"OpenGLInstanced")
+    qmlRegisterType(texture2darray.Item,"internal",1,0,"OpenGLTexture2DArray")
     engine = QQmlApplicationEngine()
     engine.load(Path(__file__).resolve().parent/"qml"/"Main.qml")
     if not engine.rootObjects():

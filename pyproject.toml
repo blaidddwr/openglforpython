@@ -23,7 +23,8 @@ files = [
     "opengl/program.py",
     "opengl/texture.py",
     "qml/Main.qml",
-    "texture.py",
+    "texture2d.py",
+    "texture2darray.py",
     "transform.py",
     "triangle.py",
 ]
