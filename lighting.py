@@ -11,7 +11,11 @@ from OpenGL.GL import GL_VERTEX_SHADER
 from OpenGL.GL import glClear
 from OpenGL.GL import glEnable
 from OpenGL.GL import glViewport
+from PySide6.QtCore import QObject
+from PySide6.QtCore import QTimerEvent
+from PySide6.QtCore import Qt
 from PySide6.QtGui import QMatrix4x4
+from PySide6.QtGui import QMouseEvent
 from PySide6.QtGui import QVector4D
 from ctypes import Structure as cStructure
 from ctypes import c_char
@@ -22,6 +26,56 @@ from opengl import Shader
 from opengl import Texture2D
 from opengl import VertexArray
 import base
+
+
+class Item(base.Item):
+
+    def __init__(self,parent:QObject = None):
+        super().__init__(parent)
+        self.startTimer(16)
+        self.__cubeSpinning = False
+        self.__angle = 0
+        self.__theta = 0
+        self.__phi = 0
+        self.setAcceptedMouseButtons(Qt.LeftButton)
+
+    def mouseDoubleClickEvent(self,event:QMouseEvent) -> None:
+        self.__cubeSpinning = not self.__cubeSpinning
+        event.accept()
+
+    def mouseMoveEvent(self,event:QMouseEvent) -> None:
+        dx = self.__mouseStartX-event.globalPosition().x()
+        dy = self.__mouseStartY-event.globalPosition().y()
+        dx = dx/self.window().width()
+        dy = dy/self.window().height()
+        self.__theta = self.__thetaStart+dx*360
+        if self.__theta < 0:
+            self.__theta += 360
+        elif self.__theta >= 360:
+            self.__theta -= 360
+        self.__phi = max(0,min(180,self.__phiStart+dy*360))
+        self.window().update()
+        event.accept()
+
+    def mousePressEvent(self,event:QMouseEvent) -> None:
+        self.__mouseStartX = event.globalPosition().x()
+        self.__mouseStartY = event.globalPosition().y()
+        self.__thetaStart = self.__theta
+        self.__phiStart = self.__phi
+        event.accept()
+
+    def timerEvent(self,event:QTimerEvent) -> None:
+        if self.__cubeSpinning:
+            self.__angle += 0.5
+            self.window().update()
+
+    def _createRenderer(self) -> base.Renderer:
+        return Renderer()
+
+    def _sync(self,renderer:base.Renderer) -> None:
+        renderer.setAngle(self.__angle)
+        renderer.setTheta(self.__theta)
+        renderer.setPhi(self.__phi)
 
 
 class PointLight(cStructure):
@@ -123,8 +177,8 @@ class Renderer(base.Renderer):
 
     def __initProgram(self):
         self.__program = Program(
-            Shader(self._shader("vertex.glsl"),GL_VERTEX_SHADER)
-            ,Shader(self._shader("fragment.glsl"),GL_FRAGMENT_SHADER)
+            Shader(_vertexShaderSrc,GL_VERTEX_SHADER)
+            ,Shader(_fragmentShaderSrc,GL_FRAGMENT_SHADER)
             )
 
     def __initTexture(self):
@@ -191,3 +245,75 @@ class Renderer(base.Renderer):
                     ,(program.normal,3,GL_FLOAT,32,20)
                     )
                 )
+
+
+_vertexShaderSrc = """#version 430 core
+
+in vec3 position;
+in vec2 texturePoint;
+in vec3 normal;
+
+uniform mat4 model;
+uniform mat4 view;
+uniform mat4 projection;
+
+out vec2 fTexturePoint;
+out vec3 fPosition;
+out vec3 fNormal;
+
+void main()
+{
+    gl_Position = projection*view*model*vec4(position,1.0);
+    fTexturePoint = texturePoint;
+    fPosition = (model*vec4(position,1.0)).xyz;
+    fNormal = mat3(model)*normal;
+}
+"""
+
+_fragmentShaderSrc = """#version 430 core
+#define LIGHT_SIZE 3
+
+struct Light
+{
+    vec3 position;
+    vec3 color;
+    float power;
+};
+
+in vec2 fTexturePoint;
+in vec3 fPosition;
+in vec3 fNormal;
+
+uniform sampler2D imageTexture;
+uniform vec3 cameraPosition;
+layout (std140) uniform lightBlock
+{
+    Light lights[LIGHT_SIZE];
+};
+
+out vec4 color;
+
+vec3 calcPointLight(Light light,vec3 fPos,vec3 fNorm,vec3 textureColor)
+{
+    vec3 ret = vec3(0.0);
+    vec3 ftl = light.position-fPos;
+    float d = length(ftl);
+    ftl = normalize(ftl);
+    vec3 ftc = normalize(cameraPosition-fPos);
+    vec3 hw = normalize(ftl+ftc);
+    ret += textureColor*light.color*light.power*max(0.0,dot(fNorm,ftl))/pow(d,2);
+    ret += light.color*light.power*pow(max(0.0,dot(fNorm,hw)),32)/pow(d,2);
+    return ret;
+}
+
+void main()
+{
+    vec3 tc = texture(imageTexture,fTexturePoint).xyz;
+    vec3 ret = 0.2*tc.xyz;
+    for (int i = 0;i < LIGHT_SIZE;i++)
+    {
+        ret += calcPointLight(lights[i],fPosition,fNormal,tc);
+    }
+    color = vec4(ret,1.0);
+}
+"""
