@@ -1,6 +1,7 @@
 from OpenGL.GL import GL_COMPILE_STATUS
 from OpenGL.GL import GL_FALSE
 from OpenGL.GL import GL_LINK_STATUS
+from OpenGL.GL import GL_SHADER_STORAGE_BLOCK
 from OpenGL.GL import glAttachShader
 from OpenGL.GL import glCompileShader
 from OpenGL.GL import glCreateProgram
@@ -9,6 +10,7 @@ from OpenGL.GL import glDeleteProgram
 from OpenGL.GL import glDeleteShader
 from OpenGL.GL import glGetAttribLocation
 from OpenGL.GL import glGetProgramInfoLog
+from OpenGL.GL import glGetProgramResourceIndex
 from OpenGL.GL import glGetProgramiv
 from OpenGL.GL import glGetShaderInfoLog
 from OpenGL.GL import glGetShaderiv
@@ -16,6 +18,7 @@ from OpenGL.GL import glGetUniformBlockIndex
 from OpenGL.GL import glGetUniformLocation
 from OpenGL.GL import glLinkProgram
 from OpenGL.GL import glShaderSource
+from OpenGL.GL import glShaderStorageBlockBinding
 from OpenGL.GL import glUniform1i
 from OpenGL.GL import glUniform3f
 from OpenGL.GL import glUniformBlockBinding
@@ -25,9 +28,33 @@ from OpenGL.constant import IntConstant as glIntConstant
 from PySide6.QtGui import QMatrix4x4
 
 
+class SSBlock:
+
+    def __init__(self,program,index:int):
+        if index == -1:
+            raise RuntimeError
+        self.__program = program
+        self.__index = index
+
+    def setBlockBinding(self,binding:int) -> None:
+        glShaderStorageBlockBinding(self.__program,self.__index,binding)
+
+
+class SSBlockHandler:
+
+    def __init__(self,program):
+        self.__program = program
+
+    def __getattr__(self,name:str):
+        return SSBlock(
+            self.__program
+            ,glGetProgramResourceIndex(self.__program,GL_SHADER_STORAGE_BLOCK,name)
+            )
+
+
 class Uniform:
 
-    def __init__(self,location):
+    def __init__(self,location:int):
         if location == -1:
             raise RuntimeError
         self.__location = location
@@ -53,14 +80,14 @@ class UniformHandler:
 
 class UniformBlock:
 
-    def __init__(self,program,location):
-        if location == -1:
+    def __init__(self,program,index:int):
+        if index == -1:
             raise RuntimeError
         self.__program = program
-        self.__location = location
+        self.__index = index
 
     def setBlockBinding(self,binding:int) -> None:
-        glUniformBlockBinding(self.__program,self.__location,binding)
+        glUniformBlockBinding(self.__program,self.__index,binding)
 
 
 class UniformBlockHandler:
@@ -89,6 +116,7 @@ class Program:
             raise RuntimeError
         self.uniform = UniformHandler(self.__id)
         self.ubo = UniformBlockHandler(self.__id)
+        self.ssbo = SSBlockHandler(self.__id)
 
     def __del__(self):
         glDeleteProgram(self.__id)

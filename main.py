@@ -9,12 +9,13 @@ import alphaBlend
 import camera
 import instanced
 import lighting
+import ssbo
 import sys
 import texture2D
 import texture2DArray
+import toneMapping
 import transform
 import triangle
-import toneMapping
 
 
 if __name__ == "__main__":
@@ -34,6 +35,7 @@ if __name__ == "__main__":
     qmlRegisterType(instanced.Item,"internal",1,0,"OpenGLInstanced")
     qmlRegisterType(texture2DArray.Item,"internal",1,0,"OpenGLTexture2DArray")
     qmlRegisterType(toneMapping.Item,"internal",1,0,"OpenGLToneMapping")
+    qmlRegisterType(ssbo.Item,"internal",1,0,"OpenGLSSBO")
     engine = QQmlApplicationEngine()
     engine.load(Path(__file__).resolve().parent/"qml"/"Main.qml")
     if not engine.rootObjects():

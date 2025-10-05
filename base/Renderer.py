@@ -16,6 +16,7 @@ class Renderer(QObject):
         self.__window = None
         self.__initd = False
         self.__resized = False
+        self.__visible = False
 
     def __del__(self):
         if self.__initd:
@@ -33,6 +34,9 @@ class Renderer(QObject):
         if self.__viewPortSize != value:
             self.__viewPortSize = value
             self.__resized = True
+
+    def setVisible(self,value:bool) -> None:
+        self.__visible = value
 
     def setWindow(self,window:QQuickWindow) -> None:
         self.__window = window
@@ -70,6 +74,8 @@ class Renderer(QObject):
     def __paint(self):
         if self.__window is None:
             raise RuntimeError
+        if not self.__visible:
+            return
         self.__window.beginExternalCommands()
         glViewport(0,0,self.__viewPortSize.width(),self.__viewPortSize.height())
         if self.__resized:

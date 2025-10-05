@@ -1,3 +1,4 @@
+from OpenGL.GL import GL_SHADER_STORAGE_BUFFER
 from OpenGL.GL import GL_UNIFORM_BUFFER
 from OpenGL.GL import glBindBuffer
 from OpenGL.GL import glBindBufferBase
@@ -59,6 +60,11 @@ class Buffer:
 
     def bind(self,target:glIntConstant) -> None:
         glBindBuffer(target,self.__id)
+
+    def bindToShaderStorage(self,index:int) -> None:
+        if index < 0:
+            raise RuntimeError
+        glBindBufferBase(GL_SHADER_STORAGE_BUFFER,index,self.__id)
 
     def bindToUniform(self,index:int) -> None:
         if index < 0:

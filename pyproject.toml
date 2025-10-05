@@ -19,6 +19,7 @@ files = [
     "opengl/program.py",
     "opengl/texture.py",
     "qml/Main.qml",
+    "ssbo.py",
     "texture2D.py",
     "texture2DArray.py",
     "toneMapping.py",

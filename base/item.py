@@ -55,4 +55,5 @@ class Item(QQuickItem):
         if not self.__renderer:
             self.__renderer = self._createRenderer()
         self.__renderer.setViewportSize(self.window().size()*self.window().devicePixelRatio())
+        self.__renderer.setVisible(self.isVisible())
         self._sync(self.__renderer)
