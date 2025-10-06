@@ -1,6 +1,7 @@
 from OpenGL.GL import GL_RGBA
 from OpenGL.GL import GL_RGBA8
 from OpenGL.GL import GL_TEXTURE0
+from OpenGL.GL import GL_TEXTURE_1D
 from OpenGL.GL import GL_TEXTURE_2D
 from OpenGL.GL import GL_TEXTURE_2D_ARRAY
 from OpenGL.GL import GL_TEXTURE_MAG_FILTER
@@ -15,12 +16,15 @@ from OpenGL.GL import glCreateTextures
 from OpenGL.GL import glDeleteTextures
 from OpenGL.GL import glGenerateTextureMipmap
 from OpenGL.GL import glTextureParameteri
+from OpenGL.GL import glTextureStorage1D
 from OpenGL.GL import glTextureStorage2D
 from OpenGL.GL import glTextureStorage3D
+from OpenGL.GL import glTextureSubImage1D
 from OpenGL.GL import glTextureSubImage2D
 from OpenGL.GL import glTextureSubImage3D
 from OpenGL.constant import IntConstant as glIntConstant
 from PySide6.QtGui import QImage
+from ctypes import c_ubyte
 from ctypes import c_uint
 
 
@@ -58,6 +62,51 @@ class Texture:
 
     def setWrapR(self,value:glIntConstant) -> None:
         glTextureParameteri(self.__id,GL_TEXTURE_WRAP_R,value)
+
+
+class Texture1D(Texture):
+
+    @staticmethod
+    def fromArray(levels:int,colors:list):
+        if (len(colors)%4) != 0:
+            raise RuntimeError
+        ret = Texture1D(levels,GL_RGBA8,len(colors)//4)
+        ret.loadArray(colors)
+        return ret
+
+    def __init__(self,levels:int,format:glIntConstant,width:int):
+        if (
+            levels <= 0
+            or width <= 0
+            ):
+            raise RuntimeError
+        super().__init__(GL_TEXTURE_1D)
+        self.__format = format
+        glTextureStorage1D(self.id(),levels,format,width)
+        self.__width = width
+
+    def loadArray(self,colors:list) -> None:
+        size = len(colors)
+        width = size//4
+        if (
+            self.__format != GL_RGBA8
+            or width > self.__width
+            or (size%4) != 0
+            ):
+            raise RuntimeError
+        data = (c_ubyte*size)()
+        for (i,v) in enumerate(colors):
+            data[i] = v
+        glTextureSubImage1D(
+            self.id()
+            ,0
+            ,0
+            ,width
+            ,GL_RGBA
+            ,GL_UNSIGNED_BYTE
+            ,data
+            )
+        glGenerateTextureMipmap(self.id())
 
 
 class Texture2D(Texture):
