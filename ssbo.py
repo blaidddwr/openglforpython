@@ -80,25 +80,21 @@ class Item(base.Item):
 
 
 class PointLight(cStructure):
-
     _fields_ = [
         ("position",c_float*3)
         ,("p0",c_char*4)
         ,("color",c_float*3)
         ,("power",c_float)
     ]
-
     _pack_ = 1
 
 
 class PointLights(cStructure):
-
     _fields_ = [
         ("size",c_uint)
         ,("p0",c_char*12)
         ,("lights",PointLight*5)
     ]
-
     _pack_ = 1
 
 

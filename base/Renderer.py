@@ -22,6 +22,9 @@ class Renderer(QObject):
         if self.__initd:
             self._destroy()
 
+    def aspectRatio(self):
+        return self.__viewPortSize.width()/self.__viewPortSize.height()
+
     def viewportSize(self) -> QSize:
         return self.__viewPortSize
 

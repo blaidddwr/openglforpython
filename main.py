@@ -7,6 +7,7 @@ from PySide6.QtQuick import QSGRendererInterface
 from pathlib import Path
 import alphaBlend
 import camera
+import compute
 import instanced
 import lighting
 import ssbo
@@ -36,6 +37,7 @@ if __name__ == "__main__":
     qmlRegisterType(texture2DArray.Item,"internal",1,0,"OpenGLTexture2DArray")
     qmlRegisterType(toneMapping.Item,"internal",1,0,"OpenGLToneMapping")
     qmlRegisterType(ssbo.Item,"internal",1,0,"OpenGLSSBO")
+    qmlRegisterType(compute.Item,"internal",1,0,"OpenGLCompute")
     engine = QQmlApplicationEngine()
     engine.load(Path(__file__).resolve().parent/"qml"/"Main.qml")
     if not engine.rootObjects():

@@ -1,5 +1,6 @@
 from OpenGL.GL import GL_COMPILE_STATUS
 from OpenGL.GL import GL_FALSE
+from OpenGL.GL import GL_INVALID_INDEX
 from OpenGL.GL import GL_LINK_STATUS
 from OpenGL.GL import GL_SHADER_STORAGE_BLOCK
 from OpenGL.GL import glAttachShader
@@ -27,11 +28,10 @@ from OpenGL.GL import glUseProgram
 from OpenGL.constant import IntConstant as glIntConstant
 from PySide6.QtGui import QMatrix4x4
 
-
 class SSBlock:
 
     def __init__(self,program,index:int):
-        if index == -1:
+        if index == GL_INVALID_INDEX:
             raise RuntimeError
         self.__program = program
         self.__index = index

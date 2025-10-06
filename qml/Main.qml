@@ -7,55 +7,19 @@ ApplicationWindow {
     height: 600
     visible: true
     title: qsTr("OpenGL in Python")
-    Component.onCompleted: openGLSSBO.visible = true
-    OpenGLTriangle {
-        id: openGLTriangle
+    Loader {
         anchors.fill: parent
-        visible: false
+        sourceComponent: openGLCompute
     }
-    OpenGLTexture2D {
-        id: openGLTexture2D
-        anchors.fill: parent
-        visible: false
-    }
-    OpenGLAlphaBlend {
-        id: openGLAlphaBlend
-        anchors.fill: parent
-        visible: false
-    }
-    OpenGLTransform {
-        id: openGLTransform
-        anchors.fill: parent
-        visible: false
-    }
-    OpenGLCamera {
-        id: openGLCamera
-        anchors.fill: parent
-        visible: false
-    }
-    OpenGLLighting {
-        id: openGLLighting
-        anchors.fill: parent
-        visible: false
-    }
-    OpenGLInstanced {
-        id: openGLInstanced
-        anchors.fill: parent
-        visible: false
-    }
-    OpenGLTexture2DArray {
-        id: openGL2DArray
-        anchors.fill: parent
-        visible: false
-    }
-    OpenGLToneMapping {
-        id: openGLToneMapping
-        anchors.fill: parent
-        visible: false
-    }
-    OpenGLSSBO {
-        id: openGLSSBO
-        anchors.fill: parent
-        visible: false
-    }
+    Component { id: openGLTriangle; OpenGLTriangle {} }
+    Component { id: openGLTexture2D; OpenGLTexture2D {} }
+    Component { id: openGLAlphaBlend; OpenGLAlphaBlend {} }
+    Component { id: openGLTransform; OpenGLTransform {} }
+    Component { id: openGLCamera; OpenGLCamera {} }
+    Component { id: openGLLighting; OpenGLLighting {} }
+    Component { id: openGLInstanced; OpenGLInstanced {} }
+    Component { id: openGLTexture2DArray; OpenGLTexture2DArray {} }
+    Component { id: openGLToneMapping; OpenGLToneMapping {} }
+    Component { id: openGLSSBO; OpenGLSSBO {} }
+    Component { id: openGLCompute; OpenGLCompute {} }
 }

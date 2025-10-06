@@ -8,6 +8,7 @@ files = [
     "base/__init__.py",
     "base/item.py",
     "camera.py",
+    "compute.py",
     "gfx/cat.png",
     "gfx/wood.jpeg",
     "instanced.py",
