@@ -9,7 +9,7 @@ ApplicationWindow {
     title: qsTr("OpenGL in Python")
     Loader {
         anchors.fill: parent
-        sourceComponent: openGLTexture1D
+        sourceComponent: openGLProcedural
     }
     Component { id: openGLTriangle; OpenGLTriangle {} }
     Component { id: openGLTexture2D; OpenGLTexture2D {} }
@@ -23,4 +23,5 @@ ApplicationWindow {
     Component { id: openGLSSBO; OpenGLSSBO {} }
     Component { id: openGLCompute; OpenGLCompute {} }
     Component { id: openGLTexture1D; OpenGLTexture1D {} }
+    Component { id: openGLProcedural; OpenGLProcedural {} }
 }

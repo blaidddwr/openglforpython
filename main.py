@@ -10,6 +10,7 @@ import camera
 import compute
 import instanced
 import lighting
+import procedural
 import ssbo
 import sys
 import texture1D
@@ -40,6 +41,7 @@ if __name__ == "__main__":
     qmlRegisterType(ssbo.Item,"internal",1,0,"OpenGLSSBO")
     qmlRegisterType(compute.Item,"internal",1,0,"OpenGLCompute")
     qmlRegisterType(texture1D.Item,"internal",1,0,"OpenGLTexture1D")
+    qmlRegisterType(procedural.Item,"internal",1,0,"OpenGLProcedural")
     engine = QQmlApplicationEngine()
     engine.load(Path(__file__).resolve().parent/"qml"/"Main.qml")
     if not engine.rootObjects():

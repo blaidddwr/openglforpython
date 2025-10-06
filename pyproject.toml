@@ -19,6 +19,7 @@ files = [
     "opengl/__init__.py",
     "opengl/program.py",
     "opengl/texture.py",
+    "procedural.py",
     "qml/Main.qml",
     "ssbo.py",
     "texture1D.py",
