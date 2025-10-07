@@ -5,12 +5,13 @@ from OpenGL.GL import GL_FRAGMENT_SHADER
 from OpenGL.GL import GL_LINEAR
 from OpenGL.GL import GL_NEAREST
 from OpenGL.GL import GL_STATIC_DRAW
-from OpenGL.GL import GL_TRIANGLES
+from OpenGL.GL import GL_TRIANGLE_STRIP
 from OpenGL.GL import GL_VERTEX_SHADER
 from OpenGL.GL import glClear
 from OpenGL.GL import glViewport
 from PySide6.QtCore import QObject
 from PySide6.QtCore import Qt
+from PySide6.QtGui import QMatrix4x4
 from PySide6.QtGui import QMouseEvent
 from ctypes import Structure as cStructure
 from ctypes import c_char
@@ -46,11 +47,11 @@ class Item(base.Item):
 
 class Sine(cStructure):
     _fields_ = [
-        ("position",c_float*2)
-        ,("amplitude",c_float)
+        ("amplitude",c_float)
+        ,("dropoff",c_float)
+        ,("position",c_float*2)
         ,("frequency",c_float)
         ,("phase",c_float)
-        ,("p0",c_char*4)
     ]
     _pack_ = 1
 
@@ -68,6 +69,7 @@ class Renderer(base.Renderer):
 
     def __init__(self):
         super().__init__()
+        self.__projection = None
         self.__updateSines = True
 
     def updateSines(self):
@@ -79,33 +81,45 @@ class Renderer(base.Renderer):
         self.__initTexture()
         self.__initSines()
 
+    def _destroy(self):
+        del self.__sinesSSBO
+        del self.__texture
+        del self.__vao
+        del self.__program
+
     def _paint(self):
         if self.__updateSines:
             for sine in self.__sines.sines:
-                sine.position = (randUniform(-10,10),randUniform(-10,10))
-                sine.amplitude = randUniform(1,10)
-                sine.frequency = randUniform(1,20)
-                sine.phase = randUniform(0,3.14)
+                sine.amplitude = randUniform(0,5)
+                sine.dropoff = randUniform(1,10)
+                sine.position = (randUniform(-2,2),randUniform(-2,2))
+                sine.frequency = randUniform(0.1,1)
+                sine.phase = randUniform(0,6.28)
             self.__sinesSSBO.write(0,self.__sines)
             self.__updateSines = False
         glViewport(0,0,self.viewportSize().width(),self.viewportSize().height())
         with self.__program:
+            if self.__projection is None:
+                self.__projection = QMatrix4x4()
+                a = self.aspectRatio()
+                self.__projection.ortho(-a,a,-1,1,-1,1)
+                self.__projectionUniform.setMatrix4f(self.__projection)
             with self.__vao as vao:
                 self.__sinesSSBO.bindToShaderStorage(0)
                 self.__texture.bind(0)
                 vao.draw()
         glClear(GL_DEPTH_BUFFER_BIT)
 
-    def _destroy(self):
-        del self.__texture
-        del self.__vao
-        del self.__program
+    def _resize(self):
+        self.__projection = None
 
     def __initProgram(self):
         self.__program = Program(
             Shader(_vertexShaderSrc,GL_VERTEX_SHADER)
             ,Shader(_fragmentShaderSrc,GL_FRAGMENT_SHADER)
             )
+        with self.__program as program:
+            self.__projectionUniform = program.uniform.projection
 
     def __initSines(self):
         self.__sines = Sines()
@@ -131,14 +145,15 @@ class Renderer(base.Renderer):
 
     def __initVertices(self):
         vertices = (
-            -0.5,-0.5,0.0,0.0,1.0
-            ,0.5,-0.5,0.0,1.0,0.0
-            ,0.0,0.5,0.0,0.5,0.0
+            -0.9,-0.9,0.0,0.0,1.0
+            ,0.9,-0.9,0.0,1.0,1.0
+            ,-0.9,0.9,0.0,0.0,0.0
+            ,0.9,0.9,0.0,1.0,0.0
         )
         with self.__program as program:
             self.__vao = VertexArray.fromFloats(
                 vertices
-                ,GL_TRIANGLES
+                ,GL_TRIANGLE_STRIP
                 ,(
                     (program.position,3,GL_FLOAT,20,0)
                     ,(program.texturePoint,2,GL_FLOAT,20,12)
@@ -151,21 +166,26 @@ _vertexShaderSrc = """#version 430 core
 in vec3 position;
 in vec2 texturePoint;
 
+uniform mat4 projection;
+
 out vec2 fTexturePoint;
 
 void main()
 {
-    gl_Position = vec4(position,1.0);
+    gl_Position = projection*vec4(position,1.0);
     fTexturePoint = texturePoint;
 }
 """
 
 _fragmentShaderSrc = """#version 430 core
 
+const float PI = 3.14159265358979323846;
+
 struct Sine
 {
-    vec2 position;
     float amplitude;
+    float dropoff;
+    vec2 position;
     float frequency;
     float phase;
 };
@@ -187,9 +207,11 @@ void main()
     float f = 0.0;
     for (uint i = 0;i < sineSize;i++)
     {
-        vec2 d = abs(fTexturePoint-sines[i].position);
-        f += sines[i].amplitude*sin((sines[i].frequency*d.x)+sines[i].phase+(6.28*d.y));
+        float l = distance(fTexturePoint,sines[i].position);
+        float d = 1+cos(max(PI,PI*l*sines[i].dropoff));
+        f += sines[i].amplitude*d*0.5*(1.0+sin((2.0*PI*sines[i].frequency*l)+sines[i].phase));
     }
-    color = texture(imageTexture,sin(f));
+    bool isOdd = ((int(f)%2) == 1);
+    color = texture(imageTexture,isOdd ? 1.0 - fract(f) : fract(f));
 }
 """
